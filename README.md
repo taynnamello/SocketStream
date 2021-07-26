@@ -1,11 +1,15 @@
 # SocketStream
 
+
+O software apresentado trata-se de um serviço de mensageria de rede, onde é possível a conexão de mais de um usuário a um servidor e as mensagens são armazenadas em arquivos txt.
+
+
 ## Bilbiotecas Utilizadas:
 
 
     - socket 
     - _thread
-    - configparser: Utilizada 
+    - configparser 
     - datetime
 
 ## Versão
@@ -26,6 +30,8 @@
     1.1 Python server.py - Para subir o servidor onde a aplicação client.py irá se conectar
 
     1.2 Python client.py - Para conectar a aplicação e iniciar a troca de mensagens
+
+É necessário que os comandos acima sejam executados em terminais separados para que tenha sucesso na conexão e troca de mensagens.
 
 Ao executar a linha de comando Python server.py é exibida mensagem "Aguardando Conexão", até que o cliente informe IP do servidor que irá conectar
 
