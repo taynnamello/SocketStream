@@ -9,7 +9,7 @@ def carregaConfiguracoes():
     return config
 
 #Cria objeto de parser do ini
-config = carregaConfiguracoes
+config = carregaConfiguracoes()
 
 def montarTextoMensagem(msg):
     return datetime.datetime.now().strftime('%Y%m%d%H%M%S') + ' : ' + msg.decode("utf-8")
@@ -34,7 +34,7 @@ def conexaoCliente(con, cliente):
             
             #Entra na primeira execução para gerar o primeiro arquivo ou quando exceder o tamanho configurado
             if not arquivoGerado or testarSeExcedeuTamanho(arquivo, msg):            
-                arquivo.close()
+               # arquivo.close()
                 arquivo = gerarNovoArquivoLog(cliente) 
                 arquivoGerado = True  
 
