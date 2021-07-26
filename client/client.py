@@ -1,13 +1,14 @@
 import socket 
 
 ip = input("digite o ip de conexao: ") 
-port = 7000 
-addr = ((ip,port)) 
+port = input("digite a porta para conexao: ") 
+
+addr = ((ip,int(port))) 
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
 client_socket.connect(addr) 
 print("Para sair use CTRL+C\n")
 msg = input()
-while str.encode(msg) != '\x18':
+while True:
     try:
         client_socket.send(str.encode(msg)) 
         msg = input()

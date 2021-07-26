@@ -3,25 +3,26 @@ import _thread
 import configparser
 import datetime
 
-config = configparser.ConfigParser()
-config.read('cfg.ini')
+def carregaConfiguracoes():
+    config = configparser.ConfigParser()
+    config.read('cfg.ini')    
+    return config
 
-host = config['DEFAULT']['ip']
-port = config['DEFAULT']['porta']
+#Cria objeto de parser do ini
+config = carregaConfiguracoes
 
-addr = (host, int(port)) 
-serv_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-serv_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) 
-serv_socket.bind(addr) 
-serv_socket.listen(10) 
+def montarTextoMensagem(msg):
+    return datetime.datetime.now().strftime('%Y%m%d%H%M%S') + ' : ' + msg.decode("utf-8")
 
-print("Aguardando conexão!")
+def testarSeExcedeuTamanho(arquivo, msg):
+    tamanhoMsg = len(montarTextoMensagem(msg))
+    return (arquivo.tell() + tamanhoMsg) > int(config['DEFAULT']['tamanho_arquivo'])
 
-def gerarArquivo(cliente):
+def gerarNovoArquivoLog(cliente):
     nomeArq = config['DEFAULT']['prefixo'] +  datetime.datetime.now().strftime('%Y%m%d%H%M%S') + ' - ' + cliente[0] + ' - ' + str(cliente[1]) + '.txt'
     return open("log/" + nomeArq, 'w')    
 
-def conectado(con, cliente):
+def conexaoCliente(con, cliente):
     try:
         print("Conectado por", cliente)
         arquivoGerado = False
@@ -31,17 +32,13 @@ def conectado(con, cliente):
             if not msg: 
                 break
             
-            if not arquivoGerado:
-               arquivo = gerarArquivo(cliente) 
-               arquivoGerado = True
-        
-            tamanhoMsg = len(datetime.datetime.now().strftime('%Y%m%d%H%M%S') + ' : ' + msg.decode("utf-8"))
-        
-            if (arquivo.tell() + tamanhoMsg) > int(config['DEFAULT']['tamanho_arquivo']):
+            #Entra na primeira execução para gerar o primeiro arquivo ou quando exceder o tamanho configurado
+            if not arquivoGerado or testarSeExcedeuTamanho(arquivo, msg):            
                 arquivo.close()
-                arquivo = gerarArquivo(cliente)   
+                arquivo = gerarNovoArquivoLog(cliente) 
+                arquivoGerado = True  
 
-            arquivo.write(datetime.datetime.now().strftime('%Y%m%d%H%M%S') + ' : ' + msg.decode("utf-8") + '\n')  
+            arquivo.write(montarTextoMensagem(msg) + '\n')  
             print(cliente, msg.decode("utf-8"))        
 
         print("Finalizando conexao do cliente", cliente)
@@ -52,7 +49,21 @@ def conectado(con, cliente):
         con.close()
         _thread.exit()
 
+host = config['DEFAULT']['ip']
+port = config['DEFAULT']['porta']
+
+addr = (host, int(port)) 
+#sobe o servidor socket
+server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) 
+server.bind(addr) 
+server.listen(10) 
+
+print("Aguardando conexões!")
+
 while True:
-    con, cliente = serv_socket.accept()
+    #Aguarda conexao do cliente
+    con, cliente = server.accept()
+    #Seta time out do ini
     con.settimeout(int(config['DEFAULT']['time_out']))
-    _thread.start_new_thread(conectado, tuple([con, cliente]))
+    _thread.start_new_thread(conexaoCliente, tuple([con, cliente]))
